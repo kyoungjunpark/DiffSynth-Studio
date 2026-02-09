@@ -27,6 +27,11 @@ Requires-Dist: peft
 Requires-Dist: lpips
 Requires-Dist: scikit-image
 Requires-Dist: matplotlib
+Requires-Dist: ultralytics
+Requires-Dist: lpips
+Requires-Dist: scikit-image
+Requires-Dist: pandas
+Requires-Dist: diffsynth
 Dynamic: author
 Dynamic: classifier
 Dynamic: license-file

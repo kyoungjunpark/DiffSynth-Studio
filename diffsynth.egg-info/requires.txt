@@ -17,3 +17,8 @@ peft
 lpips
 scikit-image
 matplotlib
+ultralytics
+lpips
+scikit-image
+pandas
+diffsynth
