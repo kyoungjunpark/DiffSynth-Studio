@@ -1,0 +1,19 @@
+# Ignore virtual environments
+venv/
+.venv/
+
+# Ignore models folder contents
+models/*
+!models/.gitkeep
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# VSCode / IDE stuff (optional)
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+data/

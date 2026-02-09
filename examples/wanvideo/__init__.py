@@ -1,0 +1,1 @@
+"""Wanvideo examples package."""
