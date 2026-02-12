@@ -284,4 +284,3 @@ if __name__ == "__main__":
     )
 
     launch_training_task(dataset, model, model_logger, args=args)
-

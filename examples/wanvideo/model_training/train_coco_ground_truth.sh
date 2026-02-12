@@ -48,14 +48,13 @@ accelerate launch examples/wanvideo/model_training/train_with_ground_truth.py \
   --learning_rate 1e-5 \
   --num_epochs 1 \
   --remove_prefix_in_ckpt "pipe.dit." \
-  --output_path "./models/train/Wan2.2-TI2V-5B_full_temporal_loss0_01_norm_cap0_1_warmup5000" \
+  --output_path "./models/train/Wan2.2-TI2V-5B_full_temporal_loss0_01_cap0_02_warmup5000" \
   --trainable_models "dit" \
   --temporal_loss_weight 0.01 \
-  --temporal_normalize \
-  --temporal_cap 0.1 \
+  --temporal_cap 0.02 \
   --temporal_warmup_steps 5000
 
-
+# + lpips in loss?
 
 
 
