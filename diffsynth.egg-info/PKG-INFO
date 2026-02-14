@@ -32,6 +32,7 @@ Requires-Dist: lpips
 Requires-Dist: scikit-image
 Requires-Dist: pandas
 Requires-Dist: diffsynth
+Requires-Dist: pycocotools
 Dynamic: author
 Dynamic: classifier
 Dynamic: license-file

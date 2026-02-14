@@ -22,3 +22,4 @@ lpips
 scikit-image
 pandas
 diffsynth
+pycocotools

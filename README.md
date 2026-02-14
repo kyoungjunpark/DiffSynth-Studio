@@ -30,6 +30,28 @@ cd DiffSynth-Studio
 pip install -e .
 ```
 
+### Evaluation Environment (COCO pose mAP)
+
+Use a separate conda env to avoid NumPy/torch/torchvision conflicts:
+
+```
+source /opt/conda/etc/profile.d/conda.sh
+conda create -y -n diffsynth-eval python=3.10
+conda activate diffsynth-eval
+
+# PyTorch stack (CUDA 11.8)
+pip install --index-url https://download.pytorch.org/whl/cu118 \
+  torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2
+
+# Pin NumPy + OpenCV to avoid NumPy 2.x ABI issues
+pip install --force-reinstall --no-deps numpy==1.26.4
+pip install --force-reinstall opencv-python==4.8.1.78
+
+# Evaluation dependencies
+pip install lpips pycocotools ultralytics pandas pyyaml protobuf platformdirs pydantic python-dateutil
+pip install transformers==4.39.3
+```
+
 <details>
 <summary>Other installation methods</summary>
 

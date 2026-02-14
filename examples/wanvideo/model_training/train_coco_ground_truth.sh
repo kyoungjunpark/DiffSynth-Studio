@@ -2,7 +2,7 @@
 
 accelerate launch examples/wanvideo/model_training/train_with_ground_truth.py \
   --dataset_base_path data/coco_video_dataset,data/gptedit_video_dataset \
-  --dataset_metadata_path data/coco_video_dataset/metadata.csv,data/gptedit_video_dataset/metadata.csv \
+  --dataset_metadata_path data/coco_video_dataset/metadata.csv,data/gptedit_video_dataset/metadata_train_all.csv \
   --height 480 \
   --width 832 \
   --dataset_repeat 100 \
@@ -56,7 +56,21 @@ accelerate launch examples/wanvideo/model_training/train_with_ground_truth.py \
 
 # + lpips in loss?
 
-
+# simple version
+accelerate launch examples/wanvideo/model_training/train_with_ground_truth.py
+--dataset_base_path data/coco_video_dataset,data/gptedit_video_dataset
+--dataset_metadata_path data/coco_video_dataset/metadata.csv,data/gptedit_video_dataset/metadata_train_all.csv
+--height 480
+--width 832
+--num_frames 49
+--dataset_repeat 1
+--save_steps 10000
+--model_id_with_origin_paths "Wan-AI/Wan2.2-TI2V-5B:diffusion_pytorch_model*.safetensors,Wan-AI/Wan2.2-TI2V-5B:models_t5_umt5-xxl-enc-bf16.pth,Wan-AI/Wan2.2-TI2V-5B:Wan2.2_VAE.pth"
+--learning_rate 1e-5
+--num_epochs 1
+--remove_prefix_in_ckpt "pipe.dit."
+--output_path "./models/train/Wan2.2-TI2V-5B_full_lastframe_only"
+--trainable_models "dit"
 
   python examples/wanvideo/model_training/validate_ground_truth_full.py \
   /blob/kyoungjun/DiffSynth-Studio/models/train/Wan2.2-TI2V-5B_full_temporal_ma_mono/step-40000.safetensors \

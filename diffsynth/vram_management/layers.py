@@ -110,7 +110,10 @@ class AutoWrappedLinear(torch.nn.Linear, AutoTorchModule):
         self.lora_A_weights = []
         self.lora_B_weights = []
         self.lora_merger = None
-        self.enable_fp8 = computation_dtype in [torch.float8_e4m3fn, torch.float8_e4m3fnuz]
+        fp8_e4m3fn = getattr(torch, "float8_e4m3fn", None)
+        fp8_e4m3fnuz = getattr(torch, "float8_e4m3fnuz", None)
+        fp8_types = [t for t in (fp8_e4m3fn, fp8_e4m3fnuz) if t is not None]
+        self.enable_fp8 = computation_dtype in fp8_types if fp8_types else False
         
     def fp8_linear(
         self,
@@ -129,7 +132,8 @@ class AutoWrappedLinear(torch.nn.Linear, AutoTorchModule):
         # To avoid overflow and ensure numerical compatibility during FP8 computation,
         # we scale down the input by 2.0 in advance.
         # This scaling will be compensated later during the final result scaling.
-        if self.computation_dtype == torch.float8_e4m3fnuz:
+        fp8_e4m3fnuz = getattr(torch, "float8_e4m3fnuz", None)
+        if fp8_e4m3fnuz is not None and self.computation_dtype == fp8_e4m3fnuz:
             fp8_max = fp8_max / 2.0
         scale_a = torch.clamp(x_max / fp8_max, min=1.0).float().to(device=device)
         scale_b = torch.ones((weight.shape[0], 1)).to(device=device)

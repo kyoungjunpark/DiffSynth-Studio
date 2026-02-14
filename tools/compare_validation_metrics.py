@@ -17,13 +17,15 @@ from typing import Dict, List
 import matplotlib.pyplot as plt
 import math
 
-BASE_DIR = Path("/home/aiscuser/DiffSynth-Studio")
+BASE_DIR = Path("/home/aiscuser/DiffSynth-Studio/validation_0214")
 
-RUN_PREFIX = "validation_outputs_coco_"
+RUN_PREFIX = "validation_outputs_"
 
 METRICS = [
     "mAP",
     "AP50",
+    "marker_mAP_oks",
+    "pose_oks",
     "mse",
     "psnr",
     "ssim",
@@ -31,7 +33,15 @@ METRICS = [
     "marker_detected",
     "marker_dist_err",
     "marker_color_err",
-    "pose_oks",
+    "marker_ap_oks_by_color.red",
+    "marker_ap_oks_by_color.green",
+    "marker_ap_oks_by_color.blue",
+    "marker_ap_oks_by_color.yellow",
+    "marker_ap_oks_by_color.cyan",
+    "marker_ap_oks_by_color.magenta",
+    "marker_ap_oks_by_color.gray",
+    "marker_ap_oks_by_color.white",
+    "marker_ap_oks_by_color.black",
 ]
 
 
@@ -54,7 +64,15 @@ def load_averages(base_dir: Path, folders: List[str]) -> Dict[str, Dict[str, flo
         with path.open() as f:
             data = json.load(f)
         avg = data.get("average", {})
-        rows[folder] = {k: avg.get(k) for k in METRICS}
+        row: Dict[str, float] = {}
+        for key in METRICS:
+            if "." in key:
+                root, leaf = key.split(".", 1)
+                value = avg.get(root, {}) if isinstance(avg.get(root, {}), dict) else {}
+                row[key] = value.get(leaf)
+            else:
+                row[key] = avg.get(key)
+        rows[folder] = row
     return rows
 
 
@@ -145,9 +163,20 @@ def main() -> None:
     save_csv(rows, out_dir / "comparison_metrics.csv")
     plot_metrics(rows, out_dir / "comparison_metrics.png")
 
+    coco_rows = {k: v for k, v in rows.items() if "coco" in k}
+    gptedit_rows = {k: v for k, v in rows.items() if "gptedit" in k}
+    if coco_rows:
+        plot_metrics(coco_rows, out_dir / "comparison_metrics_coco.png")
+    if gptedit_rows:
+        plot_metrics(gptedit_rows, out_dir / "comparison_metrics_gptedit.png")
+
     print("Saved:")
     print(out_dir / "comparison_metrics.csv")
     print(out_dir / "comparison_metrics.png")
+    if coco_rows:
+        print(out_dir / "comparison_metrics_coco.png")
+    if gptedit_rows:
+        print(out_dir / "comparison_metrics_gptedit.png")
     print(out_dir / "missing_runs.txt")
 
 
