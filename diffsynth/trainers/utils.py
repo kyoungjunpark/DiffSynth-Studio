@@ -825,13 +825,16 @@ def launch_training_task(
                 except Exception:
                     # Log full traceback and attempt to recover: save model and metrics, then continue
                     try:
-                        os.makedirs(model_logger.output_path, exist_ok=True)
                         import traceback
+                        err_text = traceback.format_exc()
+                        os.makedirs(model_logger.output_path, exist_ok=True)
                         with open(os.path.join(model_logger.output_path, f'training_error_step-{model_logger.num_steps}.log'), 'w') as f:
-                            f.write(traceback.format_exc())
+                            f.write(err_text)
                     except Exception:
-                        pass
+                        err_text = None
                     print(f"Warning: Exception during training at step {model_logger.num_steps}, attempting safe save and continuing")
+                    if err_text:
+                        print(err_text)
                     # try saving model checkpoint
                     try:
                         model_logger.save_model(accelerator, model, f"error-step-{model_logger.num_steps}.safetensors")

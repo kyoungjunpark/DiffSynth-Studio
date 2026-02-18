@@ -66,14 +66,16 @@ class WanGroundTruthTrainingModule(DiffusionTrainingModule):
         inputs_posi = {"prompt": full_prompt}
         inputs_nega = {}
         
-        # Create video with reference at start and ground_truth at end
+        # Create conditioning video from reference only (all ref)
+        # GT will be used only for loss calculation in forward()
         ref_img = data["reference_image"]
         gt_img = data["ground_truth_image"]
-        video_frames = [ref_img] + [gt_img] * (self.num_frames - 1)
+        video_frames = [ref_img] * self.num_frames
         
         inputs_shared = {
             "input_image": ref_img,
-            "input_video": video_frames,
+            "input_video": video_frames,  # [ref]*49 (no GT)
+            "gt_image": gt_img,  # Pass GT for loss calculation
             "height": ref_img.size[1],
             "width": ref_img.size[0],
             "num_frames": self.num_frames,
@@ -112,22 +114,47 @@ class WanGroundTruthTrainingModule(DiffusionTrainingModule):
         timestep_id = torch.randint(min_timestep_boundary, max_timestep_boundary, (1,))
         timestep = self.pipe.scheduler.timesteps[timestep_id].to(dtype=self.pipe.torch_dtype, device=self.pipe.device)
         
+        # input_latents = [ref_latent]*49 (all ref, no GT in input)
+        # Add noise to create model input
         inputs["latents"] = self.pipe.scheduler.add_noise(inputs["input_latents"], inputs["noise"], timestep)
         training_target = self.pipe.scheduler.training_target(inputs["input_latents"], inputs["noise"], timestep)
         
+        # Encode GT separately and replace only the training_target for last frame
+        self.pipe.load_models_to_device(["vae"])
+        gt_img = inputs.get("gt_image")
+        if gt_img is None:
+            gt_img = data.get("ground_truth_image") if isinstance(data, dict) else None
+        if gt_img is None:
+            raise ValueError("ground_truth_image is required to compute GT-based last-frame loss.")
+        gt_video = self.pipe.preprocess_video([gt_img])
+        gt_latents = self.pipe.vae.encode(
+            gt_video,
+            device=self.pipe.device,
+            tiled=inputs.get("tiled", False),
+            tile_size=inputs.get("tile_size", None),
+            tile_stride=inputs.get("tile_stride", None),
+        ).to(dtype=self.pipe.torch_dtype, device=self.pipe.device)
+        gt_latent = gt_latents[:, :, 0:1, :, :]
+        
+        # Create GT training target with same noise for consistency
+        gt_noise = inputs["noise"][:, :, -1:, :, :]  # Use same noise as last frame
+        gt_training_target = self.pipe.scheduler.training_target(gt_latent, gt_noise, timestep)
+        
+        # Replace only the training_target last frame (not input_latents!)
+        training_target = training_target.clone()
+        training_target[:, :, -1:, :, :] = gt_training_target
+        
         noise_pred = self.pipe.model_fn(**models, **inputs, timestep=timestep)
         
+        # training_target already correct (using GT for last frame with consistent noise)
         # Optionally perform pseudo-target interpolation in latent space for intermediate frames
         training_target_for_loss = training_target
         if self.use_pseudo_target_interp:
             if self.pseudo_interp_space != 'latent':
-                # Image-space interpolation is expensive; warn and fall back to latent
                 print("Warning: pseudo-target interpolation in image space is not implemented; falling back to latent-space interpolation.")
-            # training_target shape: B, C, T, H, W
             B, C, T, H, W = training_target.shape
             first = training_target[:, :, 0:1, :, :]
             last = training_target[:, :, -1:, :, :]
-            # alpha values from 0..1 for each frame
             alpha = torch.linspace(0.0, 1.0, steps=T, device=training_target.device, dtype=training_target.dtype).view(1, 1, T, 1, 1)
             training_target_for_loss = first * (1.0 - alpha) + last * alpha
 

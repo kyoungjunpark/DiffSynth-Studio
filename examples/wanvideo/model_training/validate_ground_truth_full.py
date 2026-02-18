@@ -555,9 +555,9 @@ def validate(full_checkpoint_path, test_metadata_path, output_dir, num_samples=5
         prompt_text = str(row['prompt'])
         
         try:
-            ref_img = Image.open(row['reference_image']).convert("RGB")
+            ref_img = Image.open(row['reference_image']).convert("RGB").resize((832, 480))
             gt_img = Image.open(row['ground_truth_image']).convert("RGB").resize((832, 480))
-            ref_img_pose = ref_img.resize((832, 480))
+            ref_img_pose = ref_img
         except Exception as e:
             print(f"Sample {i} Error: {e}"); continue
 
@@ -570,8 +570,10 @@ def validate(full_checkpoint_path, test_metadata_path, output_dir, num_samples=5
         if use_gt_pred:
             last_frame = gt_img
         else:
+            ref_video_frames = [ref_img] * 49
             # 비디오 생성
             video = pipe(prompt=SYSTEM_PROMPT + prompt_text, input_image=ref_img,
+                         input_video=ref_video_frames,
                          num_frames=49, height=480, width=832, seed=0, tiled=True)
             last_frame = video[-1]
             

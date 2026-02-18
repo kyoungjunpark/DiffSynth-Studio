@@ -24,3 +24,10 @@ scikit-image
 pandas
 diffsynth
 pycocotools
+soundfile
+tqdm>=4.64.0
+Pillow>=9.0.0
+nvidia-ml-py3
+typing_extensions
+opencv-python
+packaging

@@ -158,6 +158,7 @@ diffsynth/pipelines/sdxl_video.py
 diffsynth/pipelines/step_video.py
 diffsynth/pipelines/svd_video.py
 diffsynth/pipelines/wan_video.py
+diffsynth/pipelines/wan_video_gt_lastframe.py
 diffsynth/pipelines/wan_video_new.py
 diffsynth/processors/FastBlend.py
 diffsynth/processors/PILEditor.py

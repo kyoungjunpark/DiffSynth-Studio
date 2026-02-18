@@ -1,0 +1,13 @@
+# DiffSynth-Studio diffsynth_gt requirements
+accelerate
+soundfile
+tqdm
+Pillow
+nvidia-ml-py3
+typing_extensions
+opencv-python
+packaging
+torch
+torchvision
+torchaudio
+transformers
