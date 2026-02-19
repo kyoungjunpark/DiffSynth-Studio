@@ -27,7 +27,12 @@ Install from source (recommended):
 ```
 git clone https://github.com/modelscope/DiffSynth-Studio.git  
 cd DiffSynth-Studio
+conda create -y -n diffsynth python=3.10
+source ~/.bashrc
+conda activate diffsynth
 pip install -e .
+
+cp -r /blob/kyoungjun/DiffSynth-Studio/models/ models/
 ```
 
 ### Evaluation Environment (COCO pose mAP)
